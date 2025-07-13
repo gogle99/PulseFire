@@ -1,0 +1,1352 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PulseFire Web App</title>
+    <style>
+       .assistant-grid-btn {
+            background: #18181f;
+            color: #00ffe7;
+            border: none;
+            border-radius: 18px;
+            box-shadow: 0 0 16px #00ffe7, 0 2px 8px #000;
+            width: 100px;
+            height: 100px;
+            font-size: 2.2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.18s, box-shadow 0.18s;
+            position: relative;
+        }
+        .assistant-grid-btn:hover {
+            background: #22223a;
+            color: #ff0055;
+            box-shadow: 0 0 32px #ff0055, 0 2px 16px #00ffe7;
+            transform: scale(1.08);
+        }
+        .assistant-grid-label {
+            font-size: 0.95rem;
+            color: #fff;
+            margin-top: 6px;
+            text-shadow: 0 0 8px #00ffe7;
+        }
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap');
+        body {
+            color: #fff;
+            background: #0a0a0f;
+            font-size: 0.9rem;
+            margin-bottom: 4px;
+            font-family: 'Orbitron', Arial, sans-serif;
+        }
+        .gx-ram-gauge { display: flex; align-items: center; gap: 8px; }
+        /* Tablet mini-app overlay style */
+        .assistant-app-modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #18181f;
+            border-radius: 18px;
+            box-shadow: 0 0 32px #00ffe7, 0 2px 12px #000;
+            min-width: 320px;
+            max-width: 90vw;
+            min-height: 220px;
+            max-height: 90vh;
+            padding: 24px 20px 18px 20px;
+            z-index: 10002;
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            color: #fff;
+            animation: fadeInApp 0.2s;
+        }
+        @keyframes fadeInApp {
+            from { opacity: 0; transform: translate(-50%, -60%); }
+            to { opacity: 1; transform: translate(-50%, -50%); }
+        }
+        .assistant-app-close {
+            position: absolute;
+            top: 12px;
+            right: 18px;
+            background: #ff0055;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 6px 16px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            box-shadow: 0 0 8px #ff0055;
+            z-index: 10003;
+        }
+        .assistant-app-modal h2 {
+            margin-top: 0;
+            margin-bottom: 12px;
+            font-size: 1.2rem;
+            text-align: center;
+            text-shadow: 0 0 8px #00ffe7;
+        }
+        .assistant-app-modal input, .assistant-app-modal textarea, .assistant-app-modal select {
+            background: #222;
+            color: #00ffe7;
+            border: none;
+            border-radius: 6px;
+            padding: 6px 10px;
+            font-size: 0.95rem;
+            margin-bottom: 8px;
+        }
+        .assistant-app-modal button:not(.assistant-app-close) {
+            background: #00ffe7;
+            color: #222;
+            border: none;
+            border-radius: 6px;
+            padding: 6px 12px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            box-shadow: 0 0 4px #00ffe7;
+            margin-bottom: 8px;
+        }
+        .assistant-app-modal ul {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+        .assistant-app-modal li {
+            background: #22223a;
+            color: #fff;
+            border-radius: 6px;
+            margin-bottom: 4px;
+            padding: 6px 10px;
+            cursor: pointer;
+            box-shadow: 0 0 4px #00ffe7;
+        }
+        .assistant-app-modal li:hover {
+            background: #ff0055;
+            color: #fff;
+        }
+        .gx-ram-value { font-size: 1.1rem; color: #00ffe7; font-family: 'Orbitron', Arial, sans-serif; }
+        .gx-ram-slider label { color: #fff; font-size: 0.8rem; }
+        .gx-ram-slider input[type=range] { accent-color: #ff0055; height: 2px; }
+        .gx-ram-hard { color: #ff0055; font-size: 0.8rem; margin-top: 2px; }
+        .gx-browser-settings { background: #22223a; border-radius: 8px; box-shadow: 0 0 8px #00ffe7, 0 2px 4px #000; padding: 8px 12px; margin-bottom: 8px; color: #fff; }
+        .gx-browser-settings label { color: #00ffe7; font-size: 0.85rem; margin-right: 4px; }
+        .gx-browser-settings input[type=text] { background: #18181f; color: #00ffe7; border: none; border-radius: 6px; padding: 4px 8px; font-size: 0.85rem; margin-right: 4px; }
+        .gx-browser-settings button { background: #00ffe7; color: #222; border: none; border-radius: 6px; padding: 4px 10px; font-size: 0.85rem; cursor: pointer; margin-right: 4px; box-shadow: 0 0 4px #00ffe7; }
+        .gx-bookmark-list, .gx-history-list { margin-top: 4px; }
+        .gx-bookmark-item, .gx-history-item { display: flex; align-items: center; margin-bottom: 2px; }
+        .gx-bookmark-item a, .gx-history-item a { color: #00ffe7; text-decoration: underline; margin-right: 4px; }
+        .gx-bookmark-item button, .gx-history-item button { background: #ff0055; color: #fff; border: none; border-radius: 4px; padding: 1px 6px; font-size: 0.7rem; cursor: pointer; }
+        .gx-search-tab { background: #222; color: #00ffe7; border: none; border-radius: 6px; padding: 4px 10px; font-size: 0.85rem; cursor: pointer; box-shadow: 0 0 4px #00ffe7; transition: background 0.2s, color 0.2s; }
+        .gx-search-tab.active, .gx-search-tab:hover { background: #00ffe7; color: #222; }
+        /* Fullscreen background for home section */
+        .gx-home-bg { background: url('https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1600&q=80') center/cover no-repeat, #0a0a0f; position: fixed; top: 0; left: 0; right: 0; bottom: 0; width: 100vw; height: 100vh; z-index: 0; }
+        .gx-home-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(10,10,15,0.65); z-index: 1; }
+        .gx-home-content { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; min-height: 100vh; padding-top: 60px; }
+        .gx-home-searchbar { margin-bottom: 16px; max-width: 320px; width: 100%; background: #18181f; border-radius: 10px; box-shadow: 0 0 8px #00ffe7; display: flex; align-items: center; padding: 6px 12px; }
+        .gx-home-searchbar input { flex: 1; background: #222; color: #00ffe7; border: none; border-radius: 6px; padding: 6px 10px; font-size: 0.95rem; font-family: 'Orbitron', Arial, sans-serif; margin-right: 6px; }
+        .gx-home-searchbar button { background: #ff0055; color: #fff; border: none; border-radius: 6px; padding: 6px 12px; font-size: 0.95rem; font-family: 'Orbitron', Arial, sans-serif; cursor: pointer; box-shadow: 0 0 4px #ff0055; }
+        .gx-home-searchbar .search-icon { font-size: 1.1rem; margin-right: 6px; color: #ff0055; }
+        .gx-home-tiles { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-bottom: 12px; }
+        .gx-home-tile { width: 80px; height: 40px; border-radius: 8px; box-shadow: 0 0 8px #00ffe7, 0 2px 4px #000; background: #18181f; display: flex; align-items: center; justify-content: center; color: #fff; font-family: 'Orbitron', Arial, sans-serif; font-size: 0.85rem; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; gap: 4px; }
+        .gx-home-tile:hover { transform: scale(1.08); box-shadow: 0 0 16px #ff0055, 0 4px 16px #00ffe7; }
+        /* Fullscreen browser overlay */
+        #browserFullOverlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; width: 100vw; height: 100vh; background: #18181f; z-index: 9999; align-items: center; justify-content: center; flex-direction: column; }
+        #browserFullFrame { width: 90vw; height: 90vh; border-radius: 18px; border: none; box-shadow: 0 0 32px #00ffe7; background: #18181f; }
+        #browserFullClose { position: absolute; top: 32px; right: 48px; background: #ff0055; color: #fff; border: none; border-radius: 8px; padding: 10px 22px; font-size: 1.2rem; cursor: pointer; box-shadow: 0 0 8px #ff0055; z-index: 10001; }
+        .calc-btn {
+            background: #22223a;
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.25rem;
+            box-shadow: 0 0 6px #00ffe7;
+            padding: 12px 0;
+            cursor: pointer;
+            transition: background 0.18s, color 0.18s, box-shadow 0.18s;
+        }
+        .calc-btn:hover {
+            background: #ff0055;
+            color: #fff;
+            box-shadow: 0 0 16px #ff0055;
+        }
+        #calcButtons {
+            margin-bottom: 8px;
+        }
+        #calcDisplay {
+            min-height: 48px;
+            user-select: text;
+        }
+    </style>
+</head>
+<body>
+        <div id="assistantGrid" style="display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh;">
+            <div style="display:grid; grid-template-columns:repeat(3,100px); grid-gap:32px; margin-top:60px;">
+                <button class="assistant-grid-btn" data-app="sectionTodo" title="Úkoly">📝<div class="assistant-grid-label">Úkoly</div></button>
+                <button class="assistant-grid-btn" data-app="sectionNotes" title="Poznámky">📒<div class="assistant-grid-label">Poznámky</div></button>
+                <button class="assistant-grid-btn" data-app="sectionHabits" title="Návyky">✅<div class="assistant-grid-label">Návyky</div></button>
+                <button class="assistant-grid-btn" data-app="sectionQuotes" title="Citáty">💡<div class="assistant-grid-label">Citáty</div></button>
+                <button class="assistant-grid-btn" data-app="sectionCalc" title="Kalkulačka">🧮<div class="assistant-grid-label">Kalkulačka</div></button>
+                <button class="assistant-grid-btn" data-app="sectionConvert" title="Převodník">🔄<div class="assistant-grid-label">Převodník</div></button>
+                <button class="assistant-grid-btn" data-app="sectionDiary" title="Deník">📔<div class="assistant-grid-label">Deník</div></button>
+                <button class="assistant-grid-btn" data-app="sectionWeather" title="Počasí">🌦️<div class="assistant-grid-label">Počasí</div></button>
+                <button class="assistant-grid-btn" data-app="sectionTimer" title="Časovač">⏱️<div class="assistant-grid-label">Stopky</div></button>
+            </div>
+        </div>
+        <div id="assistantAppOverlays"></div>
+    <script>
+        // --- Assistant Logic ---
+        // Tablet mini-app logic
+        const assistantApps = [
+            {
+                id: 'sectionTodo',
+                btn: 'btnTodo',
+                title: 'Úkoly',
+                html: `<input id="todoInput" type="text" placeholder="Nový úkol...">
+                       <button id="addTodoBtn">Přidat</button>
+                       <ul id="todoList"></ul>`
+            },
+            {
+                id: 'sectionNotes',
+                btn: 'btnNotes',
+                title: 'Poznámky',
+                html: `<textarea id="notesArea" rows="6" style="width:100%;"></textarea>
+                       <button id="saveNotesBtn">Uložit poznámky</button>`
+            },
+            {
+                id: 'sectionHabits',
+                btn: 'btnHabits',
+                title: 'Návyky',
+                html: `<input id="habitInput" type="text" placeholder="Nový návyk...">
+                       <button id="addHabitBtn">Přidat</button>
+                       <ul id="habitList"></ul>`
+            },
+            {
+                id: 'sectionQuotes',
+                btn: 'btnQuotes',
+                title: 'Motivační citát',
+                html: `<div id="quoteText" style="font-size:1.2rem; margin:12px 0;"></div>
+                       <button id="newQuoteBtn">Nový citát</button>`
+            },
+            {
+                id: 'sectionCalc',
+                btn: 'btnCalc',
+                title: 'Kalkulačka',
+                html: `<div id="calcDisplay" style="background:#22223a;color:#fff;font-size:2.2rem;border-radius:10px;padding:12px 18px;margin-bottom:16px;text-align:right;box-shadow:0 0 8px #00ffe7;">0</div>
+                       <div id="calcButtons" style="display:grid;grid-template-columns:repeat(4,60px);grid-gap:10px;justify-content:center;">
+                           <button class="calc-btn" data-act="percent">%</button>
+                           <button class="calc-btn" data-act="ce">CE</button>
+                           <button class="calc-btn" data-act="c">C</button>
+                           <button class="calc-btn" data-act="back">⌫</button>
+                           <button class="calc-btn" data-act="1/x">1/x</button>
+                           <button class="calc-btn" data-act="x2">x²</button>
+                           <button class="calc-btn" data-act="sqrt">√</button>
+                           <button class="calc-btn" data-act="/">÷</button>
+                           <button class="calc-btn" data-act="7">7</button>
+                           <button class="calc-btn" data-act="8">8</button>
+                           <button class="calc-btn" data-act="9">9</button>
+                           <button class="calc-btn" data-act="*">×</button>
+                           <button class="calc-btn" data-act="4">4</button>
+                           <button class="calc-btn" data-act="5">5</button>
+                           <button class="calc-btn" data-act="6">6</button>
+                           <button class="calc-btn" data-act="-">−</button>
+                           <button class="calc-btn" data-act="1">1</button>
+                           <button class="calc-btn" data-act="2">2</button>
+                           <button class="calc-btn" data-act="3">3</button>
+                           <button class="calc-btn" data-act="+">+</button>
+                           <button class="calc-btn" data-act="pm">±</button>
+                           <button class="calc-btn" data-act="0">0</button>
+                           <button class="calc-btn" data-act="dot">,</button>
+                           <button class="calc-btn" data-act="eq" style="background:#00ffe7;color:#222;box-shadow:0 0 8px #00ffe7;">=</button>
+                       </div>`
+            },
+            {
+                id: 'sectionConvert',
+                btn: 'btnConvert',
+                title: 'Převodník jednotek',
+                html: `<input id="convValue" type="number" placeholder="Hodnota">
+                       <select id="convType">
+                           <option value="cm2inch">cm → inch</option>
+                           <option value="inch2cm">inch → cm</option>
+                           <option value="kg2lb">kg → lb</option>
+                           <option value="lb2kg">lb → kg</option>
+                       </select>
+                       <button id="convBtn">Převést</button>
+                       <div id="convResult" style="margin-top:10px;"></div>`
+            },
+            {
+                id: 'sectionDiary',
+                btn: 'btnDiary',
+                title: 'Deník',
+                html: `<textarea id="diaryArea" rows="6" style="width:100%;"></textarea>
+                       <button id="saveDiaryBtn">Uložit zápis</button>`
+            },
+            {
+                id: 'sectionWeather',
+                btn: 'btnWeather',
+                title: 'Počasí',
+                html: `<input id="weatherCity" type="text" placeholder="Město">
+                       <input id="weatherApiKey" type="text" placeholder="OpenWeatherMap API klíč" style="margin-top:6px;">
+                       <button id="weatherBtn">Zobrazit počasí</button>
+                       <div id="weatherResult" style="margin-top:10px;"></div>
+                       <div id="weatherDetails" style="margin-top:10px;"></div>
+                       <div id="weatherForecast" style="margin-top:18px;"></div>
+                       <div style="font-size:0.85rem;color:#ff0055;margin-top:4px;">Získejte API klíč na <a href='https://openweathermap.org/appid' target='_blank' style='color:#00ffe7;'>openweathermap.org</a></div>`
+            },
+            {
+                id: 'sectionTimer',
+                btn: 'btnTimer',
+                title: 'Stopky / Pomodoro',
+                html: `<button id="startTimerBtn">Start</button>
+                       <button id="stopTimerBtn">Stop</button>
+                       <button id="resetTimerBtn">Reset</button>
+                       <div id="timerDisplay" style="font-size:2rem; margin-top:10px;">00:00:00</div>`
+            }
+        ];
+        function openAssistantApp(appId) {
+            const app = assistantApps.find(a => a.id === appId);
+            if (!app) return;
+            // Remove any existing overlay
+            document.getElementById('assistantAppOverlays').innerHTML = '';
+            // Create overlay
+            const overlay = document.createElement('div');
+            overlay.className = 'assistant-app-modal';
+            overlay.innerHTML = `<button class='assistant-app-close'>&times;</button><h2>${app.title}</h2>${app.html}`;
+            document.getElementById('assistantAppOverlays').appendChild(overlay);
+            // Close logic
+            overlay.querySelector('.assistant-app-close').onclick = function() {
+                overlay.remove();
+            };
+            // Init logic for each app (re-run JS for each)
+            setTimeout(() => { initAssistantApp(appId); }, 10);
+        }
+        function initAssistantApp(appId) {
+            if (appId === 'sectionTodo') {
+                let todoArr = [];
+                try { todoArr = JSON.parse(localStorage.getItem('assistantTodos')||'[]'); } catch(e) { todoArr = []; }
+                function renderTodos() {
+                    const ul = document.getElementById('todoList');
+                    if (!ul) return;
+                    ul.innerHTML = '';
+                    todoArr.forEach((t,i) => {
+                        const li = document.createElement('li');
+                        li.textContent = t;
+                        li.onclick = () => { if(confirm('Smazat úkol?')) { todoArr.splice(i,1); saveTodos(); renderTodos(); } };
+                        ul.appendChild(li);
+                    });
+                }
+                function saveTodos() { localStorage.setItem('assistantTodos',JSON.stringify(todoArr)); }
+                const addTodoBtn = document.getElementById('addTodoBtn');
+                if (addTodoBtn) {
+                    addTodoBtn.onclick = function() {
+                        const input = document.getElementById('todoInput');
+                        if (!input) return;
+                        const val = input.value.trim();
+                        if(val) { todoArr.push(val); saveTodos(); renderTodos(); input.value=''; }
+                    };
+                }
+                renderTodos();
+            }
+            if (appId === 'sectionNotes') {
+                const notesArea = document.getElementById('notesArea');
+                if (notesArea) notesArea.value = localStorage.getItem('assistantNotes')||'';
+                const saveNotesBtn = document.getElementById('saveNotesBtn');
+                if (saveNotesBtn) {
+                    saveNotesBtn.onclick = function() {
+                        if (notesArea) localStorage.setItem('assistantNotes',notesArea.value);
+                        alert('Poznámky uloženy!');
+                    };
+                }
+            }
+            if (appId === 'sectionHabits') {
+                let habitArr = [];
+                try { habitArr = JSON.parse(localStorage.getItem('assistantHabits')||'[]'); } catch(e) { habitArr = []; }
+                function renderHabits() {
+                    const ul = document.getElementById('habitList');
+                    if (!ul) return;
+                    ul.innerHTML = '';
+                    habitArr.forEach((h,i) => {
+                        const li = document.createElement('li');
+                        li.textContent = h;
+                        li.onclick = () => { if(confirm('Smazat návyk?')) { habitArr.splice(i,1); saveHabits(); renderHabits(); } };
+                        ul.appendChild(li);
+                    });
+                }
+                function saveHabits() { localStorage.setItem('assistantHabits',JSON.stringify(habitArr)); }
+                const addHabitBtn = document.getElementById('addHabitBtn');
+                if (addHabitBtn) {
+                    addHabitBtn.onclick = function() {
+                        const input = document.getElementById('habitInput');
+                        if (!input) return;
+                        const val = input.value.trim();
+                        if(val) { habitArr.push(val); saveHabits(); renderHabits(); input.value=''; }
+                    };
+                }
+                renderHabits();
+            }
+            if (appId === 'sectionQuotes') {
+                const quotes = [
+                    'Nečekej na příležitost, vytvoř ji.','Každý den je nová šance.','Úspěch je součet malých snah.','Věř v sebe.','Dělej dnes to, co ostatní nechtějí, abys mohl zítra dělat to, co ostatní nemohou.'
+                ];
+                function showQuote() {
+                    const quoteText = document.getElementById('quoteText');
+                    if (quoteText) quoteText.textContent = quotes[Math.floor(Math.random()*quotes.length)];
+                }
+                const newQuoteBtn = document.getElementById('newQuoteBtn');
+                if (newQuoteBtn) newQuoteBtn.onclick = showQuote;
+                showQuote();
+            }
+            if (appId === 'sectionCalc') {
+                let display = document.getElementById('calcDisplay');
+                let buttons = document.querySelectorAll('.calc-btn');
+                let value = '0';
+                let memory = '';
+                let operator = '';
+                let lastInput = '';
+                let resetNext = false;
+                function updateDisplay() {
+                    display.textContent = value.replace('.', ',');
+                }
+                function inputNum(num) {
+                    if (resetNext) { value = '0'; resetNext = false; }
+                    if (value.length > 16) return;
+                    if (value === '0') value = num;
+                    else value += num;
+                    updateDisplay();
+                    lastInput = 'num';
+                }
+                function inputDot() {
+                    if (resetNext) { value = '0'; resetNext = false; }
+                    if (!value.includes('.')) value += '.';
+                    updateDisplay();
+                    lastInput = 'dot';
+                }
+                function inputOp(op) {
+                    if (operator && lastInput !== 'op' && lastInput !== 'eq') {
+                        compute();
+                    }
+                    memory = value;
+                    operator = op;
+                    resetNext = true;
+                    lastInput = 'op';
+                }
+                function compute() {
+                    let a = parseFloat(memory.replace(',', '.'));
+                    let b = parseFloat(value.replace(',', '.'));
+                    let res = value;
+                    if (operator === '+') res = (a + b).toString();
+                    if (operator === '-') res = (a - b).toString();
+                    if (operator === '*') res = (a * b).toString();
+                    if (operator === '/') res = b !== 0 ? (a / b).toString() : 'Chyba';
+                    value = res;
+                    operator = '';
+                    updateDisplay();
+                    resetNext = true;
+                    lastInput = 'eq';
+                }
+                function clearAll() {
+                    value = '0'; memory = ''; operator = ''; resetNext = false; updateDisplay();
+                }
+                function clearEntry() {
+                    value = '0'; updateDisplay();
+                }
+                function backspace() {
+                    if (value.length > 1) value = value.slice(0, -1);
+                    else value = '0';
+                    updateDisplay();
+                }
+                function percent() {
+                    value = (parseFloat(value.replace(',', '.')) / 100).toString();
+                    updateDisplay();
+                }
+                function plusMinus() {
+                    if (value !== '0') value = value.startsWith('-') ? value.slice(1) : '-' + value;
+                    updateDisplay();
+                }
+                function sqrt() {
+                    value = Math.sqrt(parseFloat(value.replace(',', '.'))).toString();
+                    updateDisplay();
+                    resetNext = true;
+                }
+                function x2() {
+                    value = Math.pow(parseFloat(value.replace(',', '.')), 2).toString();
+                    updateDisplay();
+                    resetNext = true;
+                }
+                function inv() {
+                    let v = parseFloat(value.replace(',', '.'));
+                    value = v !== 0 ? (1 / v).toString() : 'Chyba';
+                    updateDisplay();
+                    resetNext = true;
+                }
+                buttons.forEach(btn => {
+                    btn.onclick = function() {
+                        const act = btn.getAttribute('data-act');
+                        if (act >= '0' && act <= '9') inputNum(act);
+                        else if (act === 'dot') inputDot();
+                        else if (act === '+') inputOp('+');
+                        else if (act === '-') inputOp('-');
+                        else if (act === '*') inputOp('*');
+                        else if (act === '/') inputOp('/');
+                        else if (act === 'eq') compute();
+                        else if (act === 'c') clearAll();
+                        else if (act === 'ce') clearEntry();
+                        else if (act === 'back') backspace();
+                        else if (act === 'percent') percent();
+                        else if (act === 'pm') plusMinus();
+                        else if (act === 'sqrt') sqrt();
+                        else if (act === 'x2') x2();
+                        else if (act === '1/x') inv();
+                    };
+                });
+                updateDisplay();
+            }
+            if (appId === 'sectionConvert') {
+                const convBtn = document.getElementById('convBtn');
+                if (convBtn) {
+                    convBtn.onclick = function() {
+                        const convValue = document.getElementById('convValue');
+                        const convType = document.getElementById('convType');
+                        const convResult = document.getElementById('convResult');
+                        if (!convValue || !convType || !convResult) return;
+                        let val = parseFloat(convValue.value);
+                        let type = convType.value;
+                        let res = '';
+                        if(isNaN(val)) res = 'Zadej číslo!';
+                        else if(type==='cm2inch') res = (val/2.54).toFixed(2)+' inch';
+                        else if(type==='inch2cm') res = (val*2.54).toFixed(2)+' cm';
+                        else if(type==='kg2lb') res = (val*2.20462).toFixed(2)+' lb';
+                        else if(type==='lb2kg') res = (val/2.20462).toFixed(2)+' kg';
+                        convResult.textContent = res;
+                    };
+                }
+            }
+            if (appId === 'sectionDiary') {
+                const diaryArea = document.getElementById('diaryArea');
+                if (diaryArea) diaryArea.value = localStorage.getItem('assistantDiary')||'';
+                const saveDiaryBtn = document.getElementById('saveDiaryBtn');
+                if (saveDiaryBtn) {
+                    saveDiaryBtn.onclick = function() {
+                        if (diaryArea) localStorage.setItem('assistantDiary',diaryArea.value);
+                        alert('Zápis uložen!');
+                    };
+                }
+            }
+            if (appId === 'sectionWeather') {
+                const weatherBtn = document.getElementById('weatherBtn');
+                const weatherApiKeyInput = document.getElementById('weatherApiKey');
+                const weatherDetails = document.getElementById('weatherDetails');
+                const weatherForecast = document.getElementById('weatherForecast');
+                const weatherResult = document.getElementById('weatherResult');
+                // Předvyplnit uložený klíč
+                if (weatherApiKeyInput) {
+                    weatherApiKeyInput.value = localStorage.getItem('assistantWeatherApiKey') || '';
+                    weatherApiKeyInput.onchange = function() {
+                        localStorage.setItem('assistantWeatherApiKey', weatherApiKeyInput.value.trim());
+                    };
+                }
+                // --- Automatický reset dne při otevření Počasí ---
+                const todayKey = (new Date()).toISOString().slice(0,10);
+                const lastDay = localStorage.getItem('assistantWeatherLastDay');
+                if (lastDay !== todayKey) {
+                    localStorage.setItem('assistantWeatherLastDay', todayKey);
+                }
+                // Helper: group forecast by day
+                function groupForecastByDay(list) {
+                    const days = {};
+                    list.forEach(item => {
+                        const dt = new Date(item.dt * 1000);
+                        const dayKey = dt.toISOString().slice(0, 10); // YYYY-MM-DD
+                        if (!days[dayKey]) days[dayKey] = [];
+                        days[dayKey].push(item);
+                    });
+                    return days;
+                }
+                // Helper: get current day key
+                function getTodayKey() {
+                    const now = new Date();
+                    return now.toISOString().slice(0, 10);
+                }
+                // Helper: get next N days keys
+                function getNextNDaysKeys(n) {
+                    const arr = [];
+                    const now = new Date();
+                    for (let i = 0; i < n; i++) {
+                        const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() + i);
+                        arr.push(d.toISOString().slice(0, 10));
+                    }
+                    return arr;
+                }
+                // Render forecast for selected day
+                function renderDayForecast(dayKey, daysObj) {
+                    let items = daysObj[dayKey] || [];
+                    if (!items.length) {
+                        weatherForecast.innerHTML = '<div style="color:#ff0055;">Žádná data pro tento den.</div>';
+                        return;
+                    }
+                    let html = `<strong>Předpověď pro ${dayKey}:</strong><table style='width:100%;margin-top:8px;border-collapse:collapse;'>`;
+                    html += `<tr style='background:#22223a;color:#00ffe7;'><th>Čas</th><th>Stav</th><th>Teplota</th><th>Ikona</th></tr>`;
+                    items.forEach(item => {
+                        const dt = new Date(item.dt * 1000);
+                        const hour = dt.getHours().toString().padStart(2, '0');
+                        const temp = Math.round(item.main.temp);
+                        const desc = item.weather[0].description;
+                        const icon = item.weather[0].icon;
+                        html += `<tr style='background:#18181f;color:#fff;'>
+                            <td style='padding:4px 8px;'>${hour}:00</td>
+                            <td style='padding:4px 8px;'>${desc.charAt(0).toUpperCase() + desc.slice(1)}</td>
+                            <td style='padding:4px 8px;'>${temp}°C</td>
+                            <td style='padding:4px 8px;'><img src='https://openweathermap.org/img/wn/${icon}.png' style='vertical-align:middle;width:28px;height:28px;'></td>
+                        </tr>`;
+                    });
+                    html += `</table>`;
+                    weatherForecast.innerHTML = html;
+                }
+                // Render day selector
+                function renderDaySelector(dayKeys, selectedKey, daysObj, cb) {
+                    let html = `<div style='margin-bottom:8px;'>`;
+                    dayKeys.forEach(key => {
+                        html += `<button style='background:${key===selectedKey?'#00ffe7':'#22223a'};color:${key===selectedKey?'#222':'#fff'};border:none;border-radius:6px;padding:4px 12px;margin-right:4px;cursor:pointer;' data-day='${key}'>${key}</button>`;
+                    });
+                    html += `</div>`;
+                    weatherForecast.innerHTML = html + weatherForecast.innerHTML;
+                    // Add event listeners
+                    dayKeys.forEach(key => {
+                        const btn = weatherForecast.querySelector(`button[data-day='${key}']`);
+                        if (btn) btn.onclick = () => { cb(key); };
+                    });
+                }
+                if (weatherBtn) {
+                    weatherBtn.onclick = function() {
+                        const weatherCity = document.getElementById('weatherCity');
+                        let apiKey = weatherApiKeyInput ? weatherApiKeyInput.value.trim() : '';
+                        if (!weatherCity || !weatherResult) return;
+                        let city = weatherCity.value.trim();
+                        if(!city) return weatherResult.textContent = 'Zadej město!';
+                        if(!apiKey) {
+                            apiKey = 'b6907d289e10d714a6e88b30761fae22'; // Demo klíč
+                            weatherResult.textContent = 'Používá se demo API klíč (omezené možnosti).';
+                        } else {
+                            weatherResult.textContent = 'Načítám...';
+                        }
+                        weatherDetails.innerHTML = '';
+                        weatherForecast.innerHTML = '';
+                        // Aktuální počasí
+                        fetch(`https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&appid=${apiKey}&units=metric&lang=cz`)
+                            .then(r => r.json())
+                            .then(data => {
+                                if (data.cod !== 200) {
+                                    weatherResult.textContent = 'Město nenalezeno nebo chyba API.';
+                                    weatherDetails.innerHTML = '';
+                                } else {
+                                    const temp = Math.round(data.main.temp);
+                                    const feels = Math.round(data.main.feels_like);
+                                    const desc = data.weather[0].description;
+                                    const wind = data.wind.speed;
+                                    const humidity = data.main.humidity;
+                                    const pressure = data.main.pressure;
+                                    const clouds = data.clouds.all;
+                                    weatherResult.textContent = `Počasí pro ${city}: ${desc.charAt(0).toUpperCase()+desc.slice(1)}, ${temp}°C`;
+                                    weatherDetails.innerHTML = `<div style='margin-top:8px;'>
+                                        <strong>Aktuální:</strong> <span style='color:#00ffe7;font-size:1.3rem;'>${temp}°C</span> <span style='color:#aaa;'>(${desc})</span><br>
+                                        <span style='color:#ff0055;'>Pocitově:</span> ${feels}°C<br>
+                                        <span style='color:#00ffe7;'>Vítr:</span> ${wind} m/s<br>
+                                        <span style='color:#00ffe7;'>Vlhkost:</span> ${humidity}%<br>
+                                        <span style='color:#00ffe7;'>Tlak:</span> ${pressure} hPa<br>
+                                        <span style='color:#00ffe7;'>Oblačnost:</span> ${clouds}%
+                                    </div>`;
+                                }
+                            })
+                            .catch(() => {
+                                weatherResult.textContent = 'Chyba při načítání počasí.';
+                                weatherDetails.innerHTML = '';
+                            });
+                        // Předpověď na 5 dní (každou hodinu)
+                        fetch(`https://api.openweathermap.org/data/2.5/forecast?q=${encodeURIComponent(city)}&appid=${apiKey}&units=metric&lang=cz`)
+                            .then(r => r.json())
+                            .then(data => {
+                                if (data.cod !== "200") {
+                                    weatherForecast.innerHTML = '';
+                                    return;
+                                }
+                                // Rozdělit předpověď podle dne
+                                const daysObj = groupForecastByDay(data.list);
+                                const dayKeys = Object.keys(daysObj).sort();
+                                // Zjistit dnešní den
+                                let todayKey = getTodayKey();
+                                // Pokud není dnešní den v datech, vzít první dostupný
+                                if (!daysObj[todayKey]) todayKey = dayKeys[0];
+                                // Zjistit, jestli je v localStorage uložený den, jinak použít dnešní
+                                let selectedKey = localStorage.getItem('assistantWeatherLastDay') || todayKey;
+                                if (!daysObj[selectedKey]) selectedKey = todayKey;
+                                // Render vybraný den
+                                function showDay(key) {
+                                    weatherForecast.innerHTML = '';
+                                    renderDayForecast(key, daysObj);
+                                    renderDaySelector(dayKeys, key, daysObj, showDay);
+                                    localStorage.setItem('assistantWeatherLastDay', key);
+                                }
+                                showDay(selectedKey);
+                            })
+                            .catch(() => {
+                                weatherForecast.innerHTML = '';
+                            });
+                    };
+                }
+            }
+            if (appId === 'sectionTimer') {
+                let timer = 0, timerInt = null;
+                function updateTimerDisplay() {
+                    const timerDisplay = document.getElementById('timerDisplay');
+                    if (!timerDisplay) return;
+                    let h = Math.floor(timer/3600), m = Math.floor((timer%3600)/60), s = timer%60;
+                    timerDisplay.textContent = `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+                }
+                const startTimerBtn = document.getElementById('startTimerBtn');
+                const stopTimerBtn = document.getElementById('stopTimerBtn');
+                const resetTimerBtn = document.getElementById('resetTimerBtn');
+                if (startTimerBtn) {
+                    startTimerBtn.onclick = function() {
+                        if(timerInt) return;
+                        timerInt = setInterval(()=>{timer++;updateTimerDisplay();},1000);
+                    };
+                }
+                if (stopTimerBtn) {
+                    stopTimerBtn.onclick = function() {
+                        clearInterval(timerInt); timerInt=null;
+                    };
+                }
+                if (resetTimerBtn) {
+                    resetTimerBtn.onclick = function() {
+                        timer=0; updateTimerDisplay(); clearInterval(timerInt); timerInt=null;
+                    };
+                }
+                updateTimerDisplay();
+            }
+        }
+        // Sidebar event listeners
+        assistantApps.forEach(app => {
+            const btn = document.getElementById(app.btn);
+            if (btn) btn.onclick = () => openAssistantApp(app.id);
+        });
+        document.querySelectorAll('.assistant-grid-btn').forEach(btn => {
+            btn.onclick = function() {
+                const appId = btn.getAttribute('data-app');
+                openAssistantApp(appId);
+            };
+        });
+
+        // To-Do List
+        let todoArr = [];
+        try { todoArr = JSON.parse(localStorage.getItem('assistantTodos')||'[]'); } catch(e) { todoArr = []; }
+        function renderTodos() {
+            const ul = document.getElementById('todoList');
+            if (!ul) return;
+            ul.innerHTML = '';
+            todoArr.forEach((t,i) => {
+                const li = document.createElement('li');
+                li.textContent = t;
+                li.onclick = () => { if(confirm('Smazat úkol?')) { todoArr.splice(i,1); saveTodos(); renderTodos(); } };
+                ul.appendChild(li);
+            });
+        }
+        function saveTodos() { localStorage.setItem('assistantTodos',JSON.stringify(todoArr)); }
+        const addTodoBtn = document.getElementById('addTodoBtn');
+        if (addTodoBtn) {
+            addTodoBtn.onclick = function() {
+                const input = document.getElementById('todoInput');
+                if (!input) return;
+                const val = input.value.trim();
+                if(val) { todoArr.push(val); saveTodos(); renderTodos(); input.value=''; }
+            };
+        }
+        renderTodos();
+
+        // Notes
+        const notesArea = document.getElementById('notesArea');
+        if (notesArea) notesArea.value = localStorage.getItem('assistantNotes')||'';
+        const saveNotesBtn = document.getElementById('saveNotesBtn');
+        if (saveNotesBtn) {
+            saveNotesBtn.onclick = function() {
+                if (notesArea) localStorage.setItem('assistantNotes',notesArea.value);
+                alert('Poznámky uloženy!');
+            };
+        }
+
+        // Habits
+        let habitArr = [];
+        try { habitArr = JSON.parse(localStorage.getItem('assistantHabits')||'[]'); } catch(e) { habitArr = []; }
+        function renderHabits() {
+            const ul = document.getElementById('habitList');
+            if (!ul) return;
+            ul.innerHTML = '';
+            habitArr.forEach((h,i) => {
+                const li = document.createElement('li');
+                li.textContent = h;
+                li.onclick = () => { if(confirm('Smazat návyk?')) { habitArr.splice(i,1); saveHabits(); renderHabits(); } };
+                ul.appendChild(li);
+            });
+        }
+        function saveHabits() { localStorage.setItem('assistantHabits',JSON.stringify(habitArr)); }
+        const addHabitBtn = document.getElementById('addHabitBtn');
+        if (addHabitBtn) {
+            addHabitBtn.onclick = function() {
+                const input = document.getElementById('habitInput');
+                if (!input) return;
+                const val = input.value.trim();
+                if(val) { habitArr.push(val); saveHabits(); renderHabits(); input.value=''; }
+            };
+        }
+        renderHabits();
+
+        // Quotes
+        const quotes = [
+            'Nečekej na příležitost, vytvoř ji.','Každý den je nová šance.','Úspěch je součet malých snah.','Věř v sebe.','Dělej dnes to, co ostatní nechtějí, abys mohl zítra dělat to, co ostatní nemohou.'
+        ];
+        function showQuote() {
+            const quoteText = document.getElementById('quoteText');
+            if (quoteText) quoteText.textContent = quotes[Math.floor(Math.random()*quotes.length)];
+        }
+        const newQuoteBtn = document.getElementById('newQuoteBtn');
+        if (newQuoteBtn) newQuoteBtn.onclick = showQuote;
+        showQuote();
+
+        // Calculator
+        const calcBtn = document.getElementById('calcBtn');
+        if (calcBtn) {
+            calcBtn.onclick = function() {
+                const calcInput = document.getElementById('calcInput');
+                const calcResult = document.getElementById('calcResult');
+                if (!calcInput || !calcResult) return;
+                let expr = calcInput.value;
+                try {
+                    // Bez nebezpečných výrazů
+                    if (/[^0-9+\-*/(). ]/.test(expr)) throw new Error('Chybný příklad!');
+                    let res = Function('return '+expr)();
+                    calcResult.textContent = 'Výsledek: '+res;
+                } catch(e) {
+                    calcResult.textContent = 'Chybný příklad!';
+                }
+            };
+        }
+
+        // Converter
+        const convBtn = document.getElementById('convBtn');
+        if (convBtn) {
+            convBtn.onclick = function() {
+                const convValue = document.getElementById('convValue');
+                const convType = document.getElementById('convType');
+                const convResult = document.getElementById('convResult');
+                if (!convValue || !convType || !convResult) return;
+                let val = parseFloat(convValue.value);
+                let type = convType.value;
+                let res = '';
+                if(isNaN(val)) res = 'Zadej číslo!';
+                else if(type==='cm2inch') res = (val/2.54).toFixed(2)+' inch';
+                else if(type==='inch2cm') res = (val*2.54).toFixed(2)+' cm';
+                else if(type==='kg2lb') res = (val*2.20462).toFixed(2)+' lb';
+                else if(type==='lb2kg') res = (val/2.20462).toFixed(2)+' kg';
+                convResult.textContent = res;
+            };
+        }
+
+        // Diary
+        const diaryArea = document.getElementById('diaryArea');
+        if (diaryArea) diaryArea.value = localStorage.getItem('assistantDiary')||'';
+        const saveDiaryBtn = document.getElementById('saveDiaryBtn');
+        if (saveDiaryBtn) {
+            saveDiaryBtn.onclick = function() {
+                if (diaryArea) localStorage.setItem('assistantDiary',diaryArea.value);
+                alert('Zápis uložen!');
+            };
+        }
+
+        // Weather (simple, demo)
+        const weatherBtn = document.getElementById('weatherBtn');
+        if (weatherBtn) {
+            weatherBtn.onclick = function() {
+                const weatherCity = document.getElementById('weatherCity');
+                const weatherResult = document.getElementById('weatherResult');
+                if (!weatherCity || !weatherResult) return;
+                let city = weatherCity.value.trim();
+                if(!city) return weatherResult.textContent = 'Zadej město!';
+                weatherResult.textContent = 'Počasí pro '+city+': (demo) Slunečno, 25°C';
+            };
+        }
+
+        // Timer
+        let timer = 0, timerInt = null;
+        function updateTimerDisplay() {
+            const timerDisplay = document.getElementById('timerDisplay');
+            if (!timerDisplay) return;
+            let h = Math.floor(timer/3600), m = Math.floor((timer%3600)/60), s = timer%60;
+            timerDisplay.textContent = `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+        }
+        const startTimerBtn = document.getElementById('startTimerBtn');
+        const stopTimerBtn = document.getElementById('stopTimerBtn');
+        const resetTimerBtn = document.getElementById('resetTimerBtn');
+        if (startTimerBtn) {
+            startTimerBtn.onclick = function() {
+                if(timerInt) return;
+                timerInt = setInterval(()=>{timer++;updateTimerDisplay();},1000);
+            };
+        }
+        if (stopTimerBtn) {
+            stopTimerBtn.onclick = function() {
+                clearInterval(timerInt); timerInt=null;
+            };
+        }
+        if (resetTimerBtn) {
+            resetTimerBtn.onclick = function() {
+                timer=0; updateTimerDisplay(); clearInterval(timerInt); timerInt=null;
+            };
+        }
+        updateTimerDisplay();
+        // --- END Assistant Logic ---
+        // Přepínání sekcí v sidebaru s animací
+        const sections = {
+            settingsBtn: 'settingsSection'
+        };
+        // Default section on load
+        Object.values(sections).forEach(secId => {
+            document.getElementById(secId).classList.remove('visible');
+            document.getElementById(secId).style.display = 'none';
+        });
+        document.getElementById('homeSection').classList.add('visible');
+        document.getElementById('homeSection').style.display = 'block';
+        // Sidebar click switches from homeSection
+        document.getElementById('settingsBtn').onclick = function() {
+            document.querySelectorAll('.sidebar-btn').forEach(btn => btn.classList.remove('active'));
+            this.classList.add('active');
+            document.getElementById('homeSection').classList.remove('visible');
+            document.getElementById('homeSection').style.display = 'none';
+            document.getElementById('settingsSection').style.display = 'block';
+            setTimeout(() => {
+                document.getElementById('settingsSection').classList.add('visible');
+            }, 10);
+        };
+        // Home button in sidebar
+        document.getElementById('homeBtnSidebar').onclick = function() {
+            document.querySelectorAll('.sidebar-btn').forEach(btn => btn.classList.remove('active'));
+            this.classList.add('active');
+            Object.values(sections).forEach(secId => {
+                const sec = document.getElementById(secId);
+                if (sec) {
+                    sec.classList.remove('visible');
+                    sec.style.display = 'none';
+                }
+            });
+            document.getElementById('homeSection').style.display = 'block';
+            setTimeout(() => {
+                document.getElementById('homeSection').classList.add('visible');
+            }, 10);
+        }
+        // RAM Limiter slider
+        const ramSlider = document.getElementById('ramSlider');
+        const ramValue = document.getElementById('ramValue');
+        ramSlider.oninput = function() {
+            ramValue.textContent = ramSlider.value + ' GB';
+        };
+        // Webový prohlížeč funkce
+        // Browser state
+        let historyArr = JSON.parse(localStorage.getItem('gxHistory') || '[]');
+        let bookmarksArr = JSON.parse(localStorage.getItem('gxBookmarks') || '[]');
+        let homeUrl = localStorage.getItem('gxHome') || 'https://duckduckgo.com';
+        let theme = localStorage.getItem('gxTheme') || 'dark';
+        let historyIndex = historyArr.length ? historyArr.length - 1 : 0;
+
+        // Bookmark rendering
+        function updateBookmarks() {
+            const bookmarksDiv = document.getElementById('bookmarks');
+            bookmarksDiv.innerHTML = '<strong>Záložky:</strong>';
+            if (bookmarksArr.length) {
+                bookmarksArr.forEach((b, i) => {
+                    const item = document.createElement('div');
+                    item.className = 'gx-bookmark-item';
+                    item.innerHTML = `<a href="#" onclick="event.preventDefault(); browserFrame.src='${b}'; browserUrl.value='${b}';">${b}</a> <button onclick="removeBookmark(${i})">Smazat</button>`;
+                    bookmarksDiv.appendChild(item);
+                });
+            }
+        }
+        window.removeBookmark = function(i) {
+            bookmarksArr.splice(i, 1);
+            localStorage.setItem('gxBookmarks', JSON.stringify(bookmarksArr));
+            updateBookmarks();
+        }
+        // History rendering
+        function updateHistory() {
+            const historyDiv = document.getElementById('history');
+            historyDiv.innerHTML = '<strong>Historie:</strong>';
+            if (historyArr.length) {
+                historyArr.forEach((h, i) => {
+                    const item = document.createElement('div');
+                    item.className = 'gx-history-item';
+                    item.innerHTML = `<a href="#" onclick="event.preventDefault(); browserFrame.src='${h}'; browserUrl.value='${h}';">${h}</a> <button onclick="removeHistory(${i})">Smazat</button>`;
+                    historyDiv.appendChild(item);
+                });
+            }
+        }
+        window.removeHistory = function(i) {
+            historyArr.splice(i, 1);
+            localStorage.setItem('gxHistory', JSON.stringify(historyArr));
+            updateHistory();
+        }
+        // Browser controls
+        const browserFrame = document.getElementById('browserFrame');
+        const browserUrl = document.getElementById('browserUrl');
+        const goBtn = document.getElementById('goBtn');
+        const backBtn = document.getElementById('backBtn');
+        const forwardBtn = document.getElementById('forwardBtn');
+        const reloadBtn = document.getElementById('reloadBtn');
+        const homeBtnBrowser = document.getElementById('homeBtnBrowser');
+        const showBookmarksBtn = document.getElementById('showBookmarksBtn');
+        const showHistoryBtn = document.getElementById('showHistoryBtn');
+        const searchWebBtn = document.getElementById('searchWebBtn');
+        const searchImagesBtn = document.getElementById('searchImagesBtn');
+        const searchVideosBtn = document.getElementById('searchVideosBtn');
+        const searchNewsBtn = document.getElementById('searchNewsBtn');
+        let searchType = 'web';
+
+        function getSearchUrl(query, type) {
+            // Bing search URLs
+            const base = 'https://www.bing.com/search?q=';
+            if (type === 'images') return 'https://www.bing.com/images/search?q=' + encodeURIComponent(query);
+            if (type === 'videos') return 'https://www.bing.com/videos/search?q=' + encodeURIComponent(query);
+            if (type === 'news') return 'https://www.bing.com/news/search?q=' + encodeURIComponent(query);
+            return base + encodeURIComponent(query);
+        }
+        function isUrl(str) {
+            return /^https?:\/\//.test(str) || /^[\w-]+\.[a-z]{2,}/i.test(str);
+        }
+        goBtn.onclick = function() {
+            let input = browserUrl.value.trim();
+            if (!input) return;
+            let url = input;
+            if (!isUrl(input)) {
+                url = getSearchUrl(input, searchType);
+            } else if (!/^https?:\/\//.test(input)) {
+                url = 'https://' + input;
+            }
+            browserFrame.src = url;
+            addToHistory(url);
+            updateHistory();
+        };
+        // Fallback pro iframe blokaci
+        browserFrame.onerror = function() {
+            browserFrame.style.display = 'none';
+            let fallback = document.getElementById('iframeFallback');
+            if (!fallback) {
+                fallback = document.createElement('div');
+                fallback.id = 'iframeFallback';
+                fallback.style = 'background:#222;color:#ff0055;padding:18px;border-radius:12px;margin-top:12px;text-align:center;';
+                fallback.innerHTML = 'Tato stránka blokuje zobrazení v prohlížeči.<br><button id="openNewTabBtn" style="background:#00ffe7;color:#222;border:none;border-radius:8px;padding:8px 18px;cursor:pointer;margin-top:10px;">Otevřít v nové záložce</button>';
+                browserFrame.parentNode.appendChild(fallback);
+                document.getElementById('openNewTabBtn').onclick = function() {
+                    window.open(browserUrl.value.trim(), '_blank');
+                };
+            }
+        };
+        browserFrame.onload = function() {
+            browserFrame.style.display = 'block';
+            let fallback = document.getElementById('iframeFallback');
+            if (fallback) fallback.remove();
+            browserUrl.value = browserFrame.src;
+        }
+        // Nastavení - funkce Opera GX
+        // Téma
+        let currentTheme = localStorage.getItem('pulsefireTheme') || 'classic';
+        document.querySelectorAll('.theme-btn').forEach(btn => {
+            btn.onclick = function() {
+                currentTheme = btn.dataset.theme;
+                localStorage.setItem('pulsefireTheme', currentTheme);
+                applyTheme(currentTheme);
+            };
+        });
+        function applyTheme(theme) {
+            // Barvy pro motivy
+            let bg = '#0a0a0f', accent = '#ff0055', neon = '#00ffe7', mainBg = 'linear-gradient(120deg, #0a0a0f 60%, #1a1a22 100%)';
+            if (theme === 'ultraviolet') { accent = '#a259ff'; neon = '#a259ff'; mainBg = 'linear-gradient(120deg, #18182a 60%, #2a1a3a 100%)'; }
+            if (theme === 'subzero') { accent = '#00ffe7'; neon = '#00ffe7'; mainBg = 'linear-gradient(120deg, #0a0a0f 60%, #1a1a22 100%)'; }
+            if (theme === 'frutti') { accent = '#ffb700'; neon = '#ffb700'; mainBg = 'linear-gradient(120deg, #18180a 60%, #2a1a0a 100%)'; }
+            if (theme === 'purplehaze') { accent = '#baff39'; neon = '#baff39'; mainBg = 'linear-gradient(120deg, #18182a 60%, #2a1a3a 100%)'; }
+
+            document.body.style.background = bg;
+            document.querySelector('.gx-main').style.background = mainBg;
+            document.querySelector('.gx-sidebar').style.borderRight = `1.5px solid ${accent}`;
+            document.querySelector('.gx-sidebar').style.boxShadow = `0 0 16px ${accent}, 0 2px 8px #000`;
+            document.querySelectorAll('.sidebar-btn').forEach(btn => btn.style.color = accent);
+            document.querySelectorAll('.theme-btn').forEach(btn => btn.style.boxShadow = btn.dataset.theme === theme ? `0 0 12px ${accent}` : 'none');
+            // Sidebar icons neon
+            document.querySelectorAll('.sidebar-btn img, .sidebar-btn svg').forEach(img => {
+                img.style.filter = `drop-shadow(0 0 4px ${accent})`;
+            });
+            // Neon akcenty v UI
+            document.querySelectorAll('.gx-header').forEach(h => h.style.textShadow = `0 0 10px ${neon}`);
+            document.querySelectorAll('.gx-section').forEach(sec => sec.style.boxShadow = `0 0 12px ${neon}, 0 2px 6px #000`);
+            document.querySelectorAll('.gx-home-searchbar').forEach(sb => sb.style.boxShadow = `0 0 8px ${neon}`);
+            document.querySelectorAll('.gx-home-tile').forEach(tile => tile.style.boxShadow = `0 0 8px ${neon}, 0 2px 4px #000`);
+            document.querySelectorAll('.gx-browser-settings').forEach(set => set.style.boxShadow = `0 0 8px ${neon}, 0 2px 4px #000`);
+            document.querySelectorAll('.gx-search-tab').forEach(tab => tab.style.boxShadow = `0 0 4px ${neon}`);
+            document.querySelectorAll('.gx-bookmark-item a, .gx-history-item a').forEach(a => a.style.color = neon);
+            document.querySelectorAll('.gx-bookmark-item button, .gx-history-item button').forEach(btn => btn.style.background = accent);
+        }
+        applyTheme(currentTheme);
+        applyTheme(currentTheme);
+
+        // Světlé / tmavé / automatické
+        document.getElementById('themeLightBtn').onclick = function() {
+            document.body.style.background = '#f3f3f7';
+            document.querySelector('.gx-main').style.background = '#fff';
+            localStorage.setItem('pulsefireThemeMode', 'light');
+        };
+        document.getElementById('themeDarkBtn').onclick = function() {
+            document.body.style.background = '#0a0a0f';
+            document.querySelector('.gx-main').style.background = 'linear-gradient(120deg, #0a0a0f 60%, #1a1a22 100%)';
+            localStorage.setItem('pulsefireThemeMode', 'dark');
+        };
+        document.getElementById('themeAutoBtn').onclick = function() {
+            // Automatické podle systému
+            if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                document.body.style.background = '#0a0a0f';
+                document.querySelector('.gx-main').style.background = 'linear-gradient(120deg, #0a0a0f 60%, #1a1a22 100%)';
+            } else {
+                document.body.style.background = '#f3f3f7';
+                document.querySelector('.gx-main').style.background = '#fff';
+            }
+            localStorage.setItem('pulsefireThemeMode', 'auto');
+        };
+
+        // Tapety
+        const wallpaperRadios = document.getElementsByName('wallpaper');
+        const customWallpaperInput = document.getElementById('customWallpaperInput');
+        wallpaperRadios.forEach(radio => {
+            radio.onchange = function() {
+                if (radio.value === 'custom') {
+                    customWallpaperInput.style.display = 'block';
+                } else {
+                    customWallpaperInput.style.display = 'none';
+                    document.querySelector('.gx-home-bg').style.background = "url('https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1600&q=80') center/cover no-repeat, #0a0a0f";
+                }
+            };
+        });
+        customWallpaperInput.onchange = function() {
+            const url = customWallpaperInput.value.trim();
+            if (url) {
+                document.querySelector('.gx-home-bg').style.background = `url('${url}') center/cover no-repeat, #0a0a0f`;
+                localStorage.setItem('pulsefireWallpaper', url);
+            }
+        };
+        // Načíst uloženou tapetu
+        const savedWallpaper = localStorage.getItem('pulsefireWallpaper');
+        if (savedWallpaper) {
+            document.querySelector('.gx-home-bg').style.background = `url('${savedWallpaper}') center/cover no-repeat, #0a0a0f`;
+            customWallpaperInput.value = savedWallpaper;
+            customWallpaperInput.style.display = 'block';
+            wallpaperRadios.forEach(radio => { if (radio.value === 'custom') radio.checked = true; });
+        }
+
+        // GX Basics - uložit do localStorage
+        const basics = ['gxLights','browserSounds','keyboardSounds','backgroundMusic','shaders','webModding','panicBtn','runOnStartup','showSidebar','forceDark'];
+        basics.forEach(id => {
+            const el = document.getElementById(id);
+            el.checked = localStorage.getItem('pulsefire_' + id) === 'true';
+            el.onchange = function() {
+                localStorage.setItem('pulsefire_' + id, el.checked);
+            };
+        });
+
+        // Profily - pouze info tlačítko
+        document.getElementById('manageProfilesBtn').onclick = function() {
+            alert('Správa profilů zatím není implementována.');
+        };
+
+        // Domovská stránka
+        const homeInput = document.getElementById('homeInput');
+        const saveHomeBtn = document.getElementById('saveHomeBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        homeInput.value = homeUrl;
+        saveHomeBtn.onclick = function() {
+            homeUrl = homeInput.value.trim();
+            localStorage.setItem('gxHome', homeUrl);
+            alert('Domovská stránka uložena!');
+        }
+        resetBtn.onclick = function() {
+            localStorage.removeItem('gxHome');
+            localStorage.removeItem('pulsefireTheme');
+            localStorage.removeItem('pulsefireThemeMode');
+            localStorage.removeItem('pulsefireWallpaper');
+            basics.forEach(id => localStorage.removeItem('pulsefire_' + id));
+            localStorage.removeItem('gxBookmarks');
+            localStorage.removeItem('gxHistory');
+            location.reload();
+        }
+        // Dlaždice - přidání a vykreslení
+        let tilesArr = JSON.parse(localStorage.getItem('pulsefireTiles') || '[]');
+        function renderTiles() {
+            const tilesDiv = document.getElementById('gxHomeTiles');
+            tilesDiv.innerHTML = '<div class="gx-home-tile" style="background:#222; color:#ccc; border:2px dashed #444;" onclick="document.getElementById(\'addTileModal\').style.display=\'flex\'">+ Přidat dlaždici</div>';
+            tilesArr.forEach((tile, i) => {
+                const el = document.createElement('div');
+                el.className = 'gx-home-tile';
+                el.innerHTML = `<img src='https://www.google.com/s2/favicons?domain=${encodeURIComponent(tile.url)}' width='28' style='margin-right:8px;'>${tile.name ? tile.name : tile.url}`;
+                el.onclick = () => window.open(tile.url, '_blank');
+                el.oncontextmenu = (e) => { e.preventDefault(); if(confirm('Smazat dlaždici?')) { tilesArr.splice(i,1); localStorage.setItem('pulsefireTiles', JSON.stringify(tilesArr)); renderTiles(); } };
+                tilesDiv.appendChild(el);
+            });
+        }
+        function addTile() {
+            const url = document.getElementById('tileUrlInput').value.trim();
+            const name = document.getElementById('tileNameInput').value.trim();
+            if (!url) return alert('Zadejte URL!');
+            tilesArr.push({url, name});
+            localStorage.setItem('pulsefireTiles', JSON.stringify(tilesArr));
+            renderTiles();
+            document.getElementById('addTileModal').style.display = 'none';
+            document.getElementById('tileUrlInput').value = '';
+            document.getElementById('tileNameInput').value = '';
+        }
+        // Init
+        updateBookmarks();
+        updateHistory();
+        renderTiles();
+        // Fullscreen browser overlay logic
+        function openFullBrowser(url) {
+            const overlay = document.getElementById('browserFullOverlay');
+            const frame = document.getElementById('browserFullFrame');
+            frame.src = url;
+            overlay.style.display = 'flex';
+        }
+        document.getElementById('browserFullClose').onclick = function() {
+            document.getElementById('browserFullOverlay').style.display = 'none';
+            document.getElementById('browserFullFrame').src = '';
+        };
+        // Home searchbar funkce - fullscreen search
+        const gxHomeSearchForm = document.getElementById('gxHomeSearchForm');
+        const gxHomeSearchInput = document.getElementById('gxHomeSearchInput');
+        const gxHomeSearchBtn = document.getElementById('gxHomeSearchBtn');
+        gxHomeSearchForm.onsubmit = function(e) {
+            e.preventDefault();
+            const query = gxHomeSearchInput.value.trim();
+            if (!query) return;
+            // Bing search fullscreen
+            openFullBrowser('https://www.bing.com/search?q=' + encodeURIComponent(query));
+        };
+        gxHomeSearchBtn.onclick = function() {
+        };
+        gxHomeSearchInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const query = gxHomeSearchInput.value.trim();
+                if (!query) return;
+                openFullBrowser('https://www.bing.com/search?q=' + encodeURIComponent(query));
+            }
+        });
+        // --- Prison Architect Game Logic ---
+        // Herní stav
+        let gridSize = 20;
+        let gameData = JSON.parse(localStorage.getItem('prisonGame') || 'null') || {
+            grid: Array(gridSize * gridSize).fill(0), // 0 = prázdné, 1 = místnost
+            prisoners: 0,
+            staff: 0,
+            money: 10000
+        };
+        let currentTool = 'build';
+
+        // Sidebar tool switching
+        document.getElementById('toolBuild').onclick = function() {
+            currentTool = 'build';
+            setActiveTool(this);
+        };
+        document.getElementById('toolDelete').onclick = function() {
+            currentTool = 'delete';
+            setActiveTool(this);
+        };
+        document.getElementById('toolSelect').onclick = function() {
+            currentTool = 'select';
+            setActiveTool(this);
+        };
+        function setActiveTool(btn) {
+            document.querySelectorAll('.sidebar-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
+
+        // Vykreslení gridu
+        function renderGrid() {
+            const gridDiv = document.getElementById('gameGrid');
+            gridDiv.innerHTML = '';
+            for (let i = 0; i < gridSize * gridSize; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'game-cell';
+                cell.style.width = '32px';
+                cell.style.height = '32px';
+                cell.style.borderRadius = '6px';
+                cell.style.background = gameData.grid[i] === 1 ? 'linear-gradient(120deg,#00ffe7 60%,#18181f 100%)' : '#18181f';
+                cell.style.boxShadow = gameData.grid[i] === 1 ? '0 0 8px #00ffe7' : '0 0 2px #222';
+                cell.style.cursor = 'pointer';
+                cell.style.transition = 'background 0.2s, box-shadow 0.2s';
+                cell.onclick = function() {
+                    if (currentTool === 'build') {
+                        if (gameData.grid[i] === 0 && gameData.money >= 100) {
+                            gameData.grid[i] = 1;
+                            gameData.money -= 100;
+                            updateStats();
+                            saveGame();
+                            renderGrid();
+                        }
+                    } else if (currentTool === 'delete') {
+                        if (gameData.grid[i] === 1) {
+                            gameData.grid[i] = 0;
+                            gameData.money += 50;
+                            updateStats();
+                            saveGame();
+                            renderGrid();
+                        }
+                    } else if (currentTool === 'select') {
+                        cell.style.outline = '2px solid #ff0055';
+                        setTimeout(() => cell.style.outline = '', 400);
+                    }
+                };
+                gridDiv.appendChild(cell);
+            }
+        }
+
+        // Statistiky
+        function updateStats() {
+            document.getElementById('statPrisoners').textContent = gameData.prisoners;
+            document.getElementById('statStaff').textContent = gameData.staff;
+            document.getElementById('statMoney').textContent = '$' + gameData.money;
+        }
+
+        // Uložit hru
+        function saveGame() {
+            localStorage.setItem('prisonGame', JSON.stringify(gameData));
+        }
+        document.getElementById('saveGameBtn').onclick = function() {
+            saveGame();
+            alert('Hra uložena!');
+        };
+        // Reset hry
+        document.getElementById('resetGameBtn').onclick = function() {
+            if (confirm('Opravdu resetovat hru?')) {
+                gameData = {
+                    grid: Array(gridSize * gridSize).fill(0),
+                    prisoners: 0,
+                    staff: 0,
+                    money: 10000
+                };
+                saveGame();
+                updateStats();
+                renderGrid();
+            }
+        };
+
+        // Inicializace
+        updateStats();
+        renderGrid();
+        // --- END Prison Architect Game Logic ---
+    </script>
+</body>
+</html>
+<link rel="manifest" href="manifest.json">
